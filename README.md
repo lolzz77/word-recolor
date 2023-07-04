@@ -3,6 +3,7 @@
 2. open command prompt
 3. cd into dir you want
 4. ```npm install -g yo generator-code```
+5. type ```yo code```
 5. choose new extension (javascript)
 6. then setting those i dk, just pick what u see fit
 7. if you try to run the command thru `command palatte (CTRL + SHIFT + P)`
