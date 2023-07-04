@@ -1,7 +1,15 @@
-# How
+# How - On Windows
 1. install node.js on windows
 2. open command prompt
 3. cd into dir you want
+
+# How - On Docker Container
+1. open command prompt
+2. ```docker pull node```
+3. ```docker run --name nodejs -it node```
+4. ```apt-get update```
+5. ```apt-get upgrade```
+
 4. ```npm install -g yo generator-code```
 5. type ```yo code```
 5. choose new extension (javascript)
