@@ -14,8 +14,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "wordrecolor.helloWorld",
-        "title": "Hello World"
+        "command": "wordrecolor.activate",
+        "title": "WordRecolor: Activate"
       }
     ]
   },
