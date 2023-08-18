@@ -17,7 +17,7 @@ dpkg: error processing archive /var/cache/apt/archives/nodejs_18.17.1-deb-1nodes
 7. repeat step 3
 8. ```npm install -g yo generator-code```
 9. ```su user```
-10. ```mkdir workspace```
+10. ```sudo mkdir workspace```
 11. ```sudo chown -R user /workspace```
 12. ```yo code```
 13. choose new extension (javascript)
