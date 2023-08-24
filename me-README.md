@@ -41,3 +41,13 @@ dpkg: error processing archive /var/cache/apt/archives/nodejs_18.17.1-deb-1nodes
 25. a new file called `xxx.vsix` should be created
 26. now go to extension -> install from vsix
 24. open `command pallate (CTRL + SHIFT + P)` -> Activate your extension
+
+# Multiple extension
+If you happen to git clone multiple extension within one docker container / vscode workspace
+1. open vscode terminal, choose the repo that you want
+2. run `npm run watch`
+3. go to `Run & Debug` window
+4. Drop down, choose `Run extension (your repo)`
+5. You might encounter pop up saying error, do you still want to debug or something
+6. Choose `debug anyway`
+7. Try run your extension command, you should be good to go
