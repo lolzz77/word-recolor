@@ -42,6 +42,11 @@ dpkg: error processing archive /var/cache/apt/archives/nodejs_18.17.1-deb-1nodes
 26. now go to extension -> install from vsix
 24. open `command pallate (CTRL + SHIFT + P)` -> Activate your extension
 
+# Set up
+You have to place the JSON file in the correct path
+1. Run the extension, it will pop up the path it is looking for
+2. Then, copy the JSON files from `./jsonFile` to the path that VScode tells u
+
 # Multiple extension
 If you happen to git clone multiple extension within one docker container / vscode workspace
 1. open vscode terminal, choose the repo that you want
