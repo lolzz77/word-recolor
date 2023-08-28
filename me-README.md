@@ -33,14 +33,15 @@ dpkg: error processing archive /var/cache/apt/archives/nodejs_18.17.1-deb-1nodes
 17. press F5
 18. choose `npm:compile`
 19. wait until it pops up a new vs code
-20. to build extension
-21. in command prompt, run ```npm install -g vsce```
-22. cd into your project, where package.json is located, pls open file explorer to confirm that lol
-23. then, if your README is default one, pls edit your README, else, it wont proceed
-24. now run ```vsce package```
-25. a new file called `xxx.vsix` should be created
-26. now go to extension -> install from vsix
-24. open `command pallate (CTRL + SHIFT + P)` -> Activate your extension
+
+# How to build extension
+1. in command prompt, run ```npm install -g vsce```
+2. cd into your project, where package.json is located, pls open file explorer to confirm that lol
+3. then, if your README is default one, pls edit your README, else, it wont proceed
+4. now run ```vsce package```
+5. a new file called `xxx.vsix` should be created
+6. now go to extension -> install from vsix
+7. open `command pallate (CTRL + SHIFT + P)` -> Activate your extension
 
 # Set up
 You have to place the JSON file in the correct path
