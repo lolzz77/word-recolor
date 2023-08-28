@@ -35,12 +35,12 @@ dpkg: error processing archive /var/cache/apt/archives/nodejs_18.17.1-deb-1nodes
 19. wait until it pops up a new vs code
 
 # How to build extension
-1. in command prompt, run ```npm install -g vsce```
-2. cd into your project, where package.json is located, pls open file explorer to confirm that lol
+1. in command prompt, run ```sudo npm install -g vsce```
+2. cd into your project, where `package.json` is located, pls open file explorer to confirm that lol
 3. then, if your README is default one, pls edit your README, else, it wont proceed
-4. now run ```vsce package```
+4. now run ```sudo vsce package```
 5. a new file called `xxx.vsix` should be created
-6. now go to extension -> install from vsix
+6. now go to your actual vs code, `extension` -> `install from vsix`
 7. open `command pallate (CTRL + SHIFT + P)` -> Activate your extension
 
 # Set up
