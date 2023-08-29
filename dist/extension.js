@@ -64,9 +64,11 @@ function activate(context) {
             // display the JSON file path that this extension will be searching for
             // display the current active editor
             let language = getCurrentActiveEditorLanguage();
-            vscode.window.showInformationMessage('Language: ' + language);
+            console.log('Language: ' + language);
+            // vscode.window.showInformationMessage('Language: ' + language);
             let JSONPath = getJSONPath(language);
-            vscode.window.showInformationMessage('JSON Path: ' + JSONPath);
+            console.log('JSON Path: ' + JSONPath);
+            // vscode.window.showInformationMessage('JSON Path: ' + JSONPath);
         }
         else {
             vscode.window.showInformationMessage('No language detected');
