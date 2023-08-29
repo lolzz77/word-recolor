@@ -1,3 +1,34 @@
+# How to run
+1. open vscode terminal
+2. run `npm run watch`
+3. press `F5`
+4. if it outputs error, try cancel and press `F5` again
+5. A new window pops up, press `F1` -> `word recolor: activate`
+6. you should see an error pops up at bottom right
+7. this is due to missing JSON file, the extension needs to read data from JSON file
+8. create a JSON file to that location
+9. content of JSON file:
+```
+{
+    "#ff00f2":
+    [
+        "NULL",
+        "NONE"
+    ],
+    "#23ff0a":
+    [
+        "TRUE"
+    ],
+    "red":
+    [
+        "FALSE",
+        "NOT IN"
+    ]
+}
+```
+10. press `F1` -> `reload`
+11. `F1` -> `word recolor: activate` extension again
+
 # How - On Windows
 1. install node.js on windows
 2. open command prompt
