@@ -47,71 +47,51 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.deactivate = exports.activate = void 0;
+exports.createAndWriteFile = exports.resetDecoration = exports.deactivate = exports.activate = void 0;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = __webpack_require__(1);
 const fs = __webpack_require__(2);
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+var decorationTypeArr = [];
 function activate(context) {
-    // This will register command name and trigger a function with it
-    // The function is empty, because I dont need it
-    // I have to write this, else, the extension wont run
-    let disposable = vscode.commands.registerCommand('wordrecolor.activate', () => {
+    let disposable1 = vscode.commands.registerCommand('wordrecolor.activate', () => {
         let editor = vscode.window.activeTextEditor;
-        if (editor) {
-            // display the JSON file path that this extension will be searching for
-            // display the current active editor
-            let language = getCurrentActiveEditorLanguage();
-            console.log('Language: ' + language);
-            // vscode.window.showInformationMessage('Language: ' + language);
-            let JSONPath = getJSONPath(language);
-            console.log('JSON Path: ' + JSONPath);
-            // vscode.window.showInformationMessage('JSON Path: ' + JSONPath);
-        }
-        else {
-            vscode.window.showInformationMessage('No language detected');
-        }
-    });
-    // This will put the command specified in package.json into command palette (CTRL + SHIFT + P)
-    context.subscriptions.push(disposable);
-    let language = getCurrentActiveEditorLanguage();
-    // for now, just make it to default.json first
-    let JSONPath = getJSONPath(null);
-    let data = getJSONData(JSONPath);
-    // just a note, you can set the italic font style and such
-    // const nullDecorationType = vscode.window.createTextEditorDecorationType({
-    //     color: '#ff00f2', // Pink
-    // 	fontStyle: 'italic',
-    // 	// This is how you do it
-    // 	// fontWeight: 'bold',
-    // 	// fontStyle: 'italic',
-    // 	// textDecoration: 'underline'
-    // });
-    // This is to delay the trigger update
-    // This is to increase performance
-    // Now, everytime you type in file, it will trigger the extension to colorize words
-    // However, we dont want it to colorize immediately, but after a short delay
-    let timeout = undefined;
-    // main function, will recolor the words
-    function updateDecorations() {
-        var editor = vscode.window.activeTextEditor;
-        if (editor) {
+        if (!editor)
+            return;
+        let language = getCurrentActiveEditorLanguage();
+        // for now, just make it to default.json first
+        let JSONPath = getJSONPath(null);
+        createAndWriteFile(JSONPath, null);
+        let data = getJSONData(JSONPath);
+        // just a note, you can set the italic font style and such
+        // const nullDecorationType = vscode.window.createTextEditorDecorationType({
+        //     color: '#ff00f2', // Pink
+        // 	fontStyle: 'italic',
+        // 	// This is how you do it
+        // 	// fontWeight: 'bold',
+        // 	// fontStyle: 'italic',
+        // 	// textDecoration: 'underline'
+        // });
+        // This is to delay the trigger update
+        // This is to increase performance
+        // Now, everytime you type in file, it will trigger the extension to colorize words
+        // However, we dont want it to colorize immediately, but after a short delay
+        let timeout = undefined;
+        // main function, will recolor the words
+        function updateDecorations() {
+            var editor = vscode.window.activeTextEditor;
+            if (!editor)
+                return;
             var document = editor.document;
             var text = document.getText();
             var ranges = [];
             let colors = Object.keys(data);
+            // for each color, set decoration
             for (let color of colors) {
-                console.log(color);
-                var DecorationType = vscode.window.createTextEditorDecorationType({
-                    color: color
-                });
                 let keywords = data[color];
+                // for each keywords of the colors, set up ranges
                 for (let keyword of keywords) {
-                    console.log(keyword);
                     let match;
-                    // a dynamic regex
                     // match case-insensitive-ly
                     let regex = new RegExp("\\b(" + keyword + ")\\b", "gi");
                     while (match = regex.exec(text)) {
@@ -121,39 +101,66 @@ function activate(context) {
                         // put these words into array
                         ranges.push(range);
                     }
-                    // change the color, according to the words in the array
-                    editor.setDecorations(DecorationType, ranges);
                 }
+                decorationTypeArr.push({
+                    decorationTypeArr: vscode.window.createTextEditorDecorationType({ color: color }),
+                    // this pushes a copy of the array
+                    // if dont do this, the array pushed into here, are of the same array
+                    // once the original got modified, this will be modified as well
+                    ranges: [...ranges]
+                });
+            }
+            for (const decorationInterface of decorationTypeArr) {
+                let decorationType = decorationInterface.decorationTypeArr;
+                let ranges = decorationInterface.ranges;
+                // change the color, according to the words in the array
+                editor.setDecorations(decorationType, ranges);
             }
         }
-    }
-    function triggerUpdateDecorations() {
-        if (timeout) {
-            clearTimeout(timeout);
-            timeout = undefined;
+        function triggerUpdateDecorations() {
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = undefined;
+            }
+            timeout = setTimeout(updateDecorations, 500);
         }
-        timeout = setTimeout(updateDecorations, 500);
-    }
-    // This one I think apply changes based on current active file you're editting
-    if (vscode.window.activeTextEditor) {
-        triggerUpdateDecorations();
-    }
-    // This one will handle event handling
-    // This will trigger function to colotizes the word
-    vscode.window.onDidChangeActiveTextEditor(editor => {
-        if (editor) {
+        // This one I think apply changes based on current active file you're editting
+        if (vscode.window.activeTextEditor) {
             triggerUpdateDecorations();
         }
-    }, null, context.subscriptions);
-    // This one will handle event handling
-    // This will trigger function to colotizes the word
-    vscode.workspace.onDidChangeTextDocument(event => {
-        if (vscode.window.activeTextEditor && event.document === vscode.window.activeTextEditor.document) {
+        // This one will handle event handling
+        // This will trigger function to colotizes the word
+        vscode.window.onDidChangeActiveTextEditor(editor => {
+            if (!editor)
+                return;
             triggerUpdateDecorations();
-        }
-    }, null, context.subscriptions);
+        }, null, context.subscriptions);
+        // This one will handle event handling
+        // This will trigger function to colotizes the word
+        vscode.workspace.onDidChangeTextDocument(event => {
+            if (vscode.window.activeTextEditor && event.document === vscode.window.activeTextEditor.document) {
+                triggerUpdateDecorations();
+            }
+        }, null, context.subscriptions);
+    });
+    let disposable2 = vscode.commands.registerCommand('wordrecolor.showPath', () => {
+        let JSONPath = getJSONPath(null);
+        vscode.window.showInformationMessage(JSONPath);
+    });
+    let disposable3 = vscode.commands.registerCommand('wordrecolor.clear', () => {
+        resetDecoration(decorationTypeArr);
+    });
+    // This will put the command specified in package.json into command palette (CTRL + SHIFT + P)
+    context.subscriptions.push(disposable1);
+    context.subscriptions.push(disposable2);
+    context.subscriptions.push(disposable3);
 }
 exports.activate = activate;
+// thsi method is called when your extension is disabled
+function deactivate() {
+    resetDecoration(decorationTypeArr);
+}
+exports.deactivate = deactivate;
 // Get the JSON File
 function getJSONData(JSONPath) {
     let fileContents = fs.readFileSync(JSONPath, "utf8");
@@ -188,9 +195,59 @@ function getFunctionNameAndLineNumber() {
     const lineNumber = parseInt(stack?.match(/:(\d+):/)?.[1] ?? '', 10);
     return [functionName, lineNumber];
 }
-// This method is called when your extension is deactivated
-function deactivate() { }
-exports.deactivate = deactivate;
+// for resetting the decoration applied to active editor
+function resetDecoration(decorationTypes) {
+    // Reset all decoration types to their default state
+    for (const decorationInterface of decorationTypes) {
+        decorationInterface.decorationTypeArr.dispose();
+        // it seems vscode.Range has no dispose() method
+        // just set the array to null them.
+        decorationInterface.ranges.length = 0;
+    }
+    // delete all the elements
+    decorationTypes.length = 0;
+}
+exports.resetDecoration = resetDecoration;
+// to create file, then write the JSON content into it
+function createAndWriteFile(filePath, language) {
+    let readBuffer = '';
+    let readBufferJSON = '';
+    let writeBuffer = '';
+    let segments;
+    let parentDir;
+    if (language == null)
+        language = 'default';
+    // the current repo json file
+    let repo_json_file = __dirname + "/../jsonFile/" + language + ".json";
+    // get the parent dir of the file path
+    segments = filePath.split('/'); // split the path by slashes
+    segments.pop(); // remove the last segment (file name)
+    parentDir = segments.join('/'); // join the remaining segments with slashes
+    // only read if the repo JSON file exists
+    if (fs.existsSync(repo_json_file)) {
+        readBuffer = fs.readFileSync(repo_json_file, 'utf-8');
+        readBufferJSON = JSON.parse(readBuffer);
+        writeBuffer = JSON.stringify(readBufferJSON, null, 4); // 4 spaces indentation
+    }
+    // check if the JSON file that im going to write exists
+    if (fs.existsSync(filePath)) {
+        return;
+    }
+    // create parent folder if not exists
+    if (!fs.existsSync(parentDir)) {
+        fs.mkdir(parentDir, { recursive: true }, (err) => {
+            if (err) {
+                console.error(err);
+            }
+            else {
+                console.log(parentDir + " created");
+            }
+        });
+    }
+    // create file & write
+    fs.writeFileSync(filePath, writeBuffer, 'utf8');
+}
+exports.createAndWriteFile = createAndWriteFile;
 
 })();
 

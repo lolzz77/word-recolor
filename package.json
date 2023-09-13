@@ -15,7 +15,15 @@
     "commands": [
       {
         "command": "wordrecolor.activate",
-        "title": "WordRecolor: Activate"
+        "title": "Word Recolor: activate"
+      },
+      {
+        "command": "wordrecolor.showPath",
+        "title": "Word Recolor: show path"
+      },
+      {
+        "command": "wordrecolor.clear",
+        "title": "Word Recolor: clear"
       }
     ]
   },
