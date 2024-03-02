@@ -3,12 +3,14 @@
 2. run `npm install`
 3. run `npm run watch`
 4. press `F5`
-5. if it outputs error, try cancel and press `F5` again
-6. A new window pops up, press `F1` -> `word recolor: activate`
-7. you should see an error pops up at bottom right
-8. this is due to missing JSON file, the extension needs to read data from JSON file
-9. create a JSON file to that location
-10. content of JSON file:
+5. If you get pop up saying error, debug anyway?
+6. Try reload vscode & Press F5 again
+7. if it outputs error, try cancel and press `F5` again
+8. A new window pops up, press `F1` -> `word recolor: activate`
+9. you should see an error pops up at bottom right
+10. this is due to missing JSON file, the extension needs to read data from JSON file
+11. create a JSON file to that location
+12. content of JSON file:
 ```
 {
     "#ff00f2":
