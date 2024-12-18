@@ -1,0 +1,15 @@
+{
+    "#ff00f2":
+    [
+        "NONE"
+    ],
+    "#green":
+    [
+        "TRUE"
+    ],
+    "red":
+    [
+        "FALSE",
+        "NONE IN"
+    ]
+}

@@ -1,16 +1,14 @@
 {
     "#ff00f2":
     [
-        "NULL",
-        "NONE"
+        "NULL"
     ],
-    "#23ff0a":
+    "#green":
     [
         "TRUE"
     ],
     "red":
     [
-        "FALSE",
-        "NOT IN"
+        "FALSE"
     ]
 }

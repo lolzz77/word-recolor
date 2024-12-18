@@ -3,34 +3,12 @@
 2. run `npm install`
 3. run `npm run watch`
 4. press `F5`
-5. If you get pop up saying error, debug anyway?
-6. Try reload vscode & Press F5 again
-7. if it outputs error, try cancel and press `F5` again
-8. A new window pops up, press `F1` -> `word recolor: activate`
-9. you should see an error pops up at bottom right
-10. this is due to missing JSON file, the extension needs to read data from JSON file
-11. create a JSON file to that location
-12. content of JSON file:
-```
-{
-    "#ff00f2":
-    [
-        "NULL",
-        "NONE"
-    ],
-    "#23ff0a":
-    [
-        "TRUE"
-    ],
-    "red":
-    [
-        "FALSE",
-        "NOT IN"
-    ]
-}
-```
-10. press `F1` -> `reload`
-11. `F1` -> `word recolor: activate` extension again
+5. If asked, choose "VS Code Extension Development"
+6. If you get pop up saying error, debug anyway?
+7. Try reload vscode & Press F5 again
+8. if it outputs error, try cancel and press `F5` again
+9. Once a new VS Code window is popped up, press `F1` -> `word recolor: activate` to activate the extension.
+10. Now open a new file, type the keyword and it shall colorize the keyword
 
 # How - On Windows
 1. install node.js on windows

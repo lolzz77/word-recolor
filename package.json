@@ -30,6 +30,10 @@
       {
         "command": "wordrecolor.clear",
         "title": "Word Recolor: clear"
+      },
+      {
+        "command": "wordrecolor.restart",
+        "title": "Word Recolor: restart"
       }
     ]
   },

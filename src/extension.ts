@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as path from 'path';
 
 var decorationTypeArr:decorationInterface[] = [];
 
@@ -15,11 +16,6 @@ export function activate(context: vscode.ExtensionContext) {
 		let editor = vscode.window.activeTextEditor;
 		if(!editor)
 			return;
-		let language = getCurrentActiveEditorLanguage();
-		// for now, just make it to default.json first
-		let JSONPath = getJSONPath(null);
-		createAndWriteFile(JSONPath, null);
-		let data = getJSONData(JSONPath);
 	
 		// just a note, you can set the italic font style and such
 		// const nullDecorationType = vscode.window.createTextEditorDecorationType({
@@ -39,16 +35,23 @@ export function activate(context: vscode.ExtensionContext) {
 		
 		// main function, will recolor the words
 		function updateDecorations() {
+
+			let language = getCurrentActiveEditorLanguage();
+			// for now, just make it to plaintext.json first
+			let JSONPath = getJSONPath(language);
+			create_JSON_file_if_not_exist(JSONPath, language);
+			let JSONData = getJSONData(JSONPath);
+
 			var editor = vscode.window.activeTextEditor;
 			if(!editor)
 				return;
 			var document = editor.document;
 			var text = document.getText();
 			var ranges: vscode.Range[] = [];
-			let colors = Object.keys(data);
+			let colors = Object.keys(JSONData);
 			// for each color, set decoration
 			for (let color of colors) {
-				let keywords = data[color];
+				let keywords = JSONData[color];
 				// for each keywords of the colors, set up ranges
 				for (let keyword of keywords) {
 					let match;
@@ -90,6 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
 	
 		// This one I think apply changes based on current active file you're editting
 		if (vscode.window.activeTextEditor) {
+			resetDecoration(decorationTypeArr);
 			triggerUpdateDecorations();
 		}
 		
@@ -98,6 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.onDidChangeActiveTextEditor(editor => {
 			if(!editor)
 				return;
+			resetDecoration(decorationTypeArr);
 			triggerUpdateDecorations();
 		}, null, context.subscriptions);
 		
@@ -105,6 +110,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// This will trigger function to colotizes the word
 		vscode.workspace.onDidChangeTextDocument(event => {
 			if (vscode.window.activeTextEditor && event.document === vscode.window.activeTextEditor.document) {
+				resetDecoration(decorationTypeArr);
 				triggerUpdateDecorations();
 			}
 		}, null, context.subscriptions);
@@ -118,32 +124,68 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable3 = vscode.commands.registerCommand('wordrecolor.clear', () => {
 		resetDecoration(decorationTypeArr);
 	});
+
+	let disposable4 = vscode.commands.registerCommand('wordrecolor.restart', () => {
+		deactivate();		
+		activate(context);
+	});
 	
 	// This will put the command specified in package.json into command palette (CTRL + SHIFT + P)
 	context.subscriptions.push(disposable1);
 	context.subscriptions.push(disposable2);
 	context.subscriptions.push(disposable3);
+	context.subscriptions.push(disposable4);
 }
 
-// thsi method is called when your extension is disabled
+// this method is called when your extension is disabled
 export function deactivate() {
 	resetDecoration(decorationTypeArr);
+	// Delete all JSON file
+	// Probably no need, as user mayu reenable the extension again and finds the JSON they did is gone lmao
+	// I guess it will be gone once you uninstall the extension
+	// removeAllJSONFromDirectory();
 }
 
+export function removeAllJSONFromDirectory(): void {
+    const JSONPath = getJSONPath(null);
+    const dirPath = path.dirname(JSONPath);
+
+    if (!fs.existsSync(dirPath)) {
+		return;
+	}
+
+	// Read all files in the directory
+	fs.readdir(dirPath, (err, files) => {
+		if (err) {
+			console.error(`Error reading directory: ${err.message}`);
+			return;
+		}
+
+		// Iterate over all files and delete them
+		files.forEach(file => {
+			const fileToDelete = path.join(dirPath, file);
+			fs.unlink(fileToDelete, (err) => {
+				if (err) {
+					console.error(`Error deleting file: ${fileToDelete} - ${err.message}`);
+				}
+			});
+		});
+	});
+}
 
 // Get the JSON File
 function getJSONData(JSONPath: string): any {
 	let fileContents = fs.readFileSync(JSONPath, "utf8");
-	let data: any = JSON.parse(fileContents);
-	return data;
+	let JSONData: any = JSON.parse(fileContents);
+	return JSONData;
 }
 
 // To get the JSON file path that the extension will be looking
 // This JSON describe what keyword to recolor
 function getJSONPath(language: string|null): string {
-	// if language passed in is null, then set it to 'default.json'
+	// if language passed in is null, then set it to 'plaintext.json'
 	if(language == null)
-		language = 'default'
+		language = 'plaintext'
 	return vscode.env.appRoot + '/word-recolor/' + language + '.json';
 }
 
@@ -188,17 +230,16 @@ export function resetDecoration(decorationTypes:decorationInterface[])
 
 
 // to create file, then write the JSON content into it
-export function createAndWriteFile(filePath:string, language:string|null): void {
+export function create_JSON_file_if_not_exist(filePath:string, language:string|null): void {
 	let readBuffer = '';
 	let readBufferJSON = '';
 	let writeBuffer = '';
 	let segments;
 	let parentDir:any;
 
-	if(language==null)
-		language='default';
-
 	// the current repo json file
+	// eg: word-recolor/jsonFile/plaintext.json
+	// Note: Im referring this repo JSON file.
 	let repo_json_file = __dirname + "/../jsonFile/" + language + ".json";
 
 	// get the parent dir of the file path
@@ -206,18 +247,21 @@ export function createAndWriteFile(filePath:string, language:string|null): void 
 	segments.pop(); // remove the last segment (file name)
 	parentDir = segments.join('/'); // join the remaining segments with slashes
 	
+	// check if the JSON file that im going to write exists in the user folder
+	// eg: /root/.vscode-server/bin/138f619c86f1199955d53b4166bef66ef252935c/word-recolor/plaintext.json
+	// Note: This is not the repo JSON file.
+	if (fs.existsSync(filePath)) {
+		return;
+	}
+
 	// only read if the repo JSON file exists
+	// eg: word-recolor/jsonFile/plaintext.json
+	// Note: Im referring this repo JSON file.
 	if (fs.existsSync(repo_json_file)) {
 		readBuffer = fs.readFileSync(repo_json_file, 'utf-8');
 		readBufferJSON = JSON.parse(readBuffer);
 		writeBuffer = JSON.stringify(readBufferJSON, null, 4); // 4 spaces indentation
 	}
-
-	// check if the JSON file that im going to write exists
-	if (fs.existsSync(filePath)) {
-		return;
-	}
-
 	// create parent folder if not exists
 	if (!fs.existsSync(parentDir))
 	{

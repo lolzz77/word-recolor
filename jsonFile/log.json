@@ -1,0 +1,13 @@
+{
+    "#23ff0a":
+    [
+        "success"
+    ],
+    "red":
+    [
+        "error",
+        "fatal error",
+        "fail",
+        "failed"
+    ]
+}
