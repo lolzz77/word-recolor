@@ -17,7 +17,7 @@ Here I have recolored 'NULL' 'FALSE' 'TRUE' to different distinguishable colors
 1. It will generate default.json file in a path
 2. The path can be shown thru the command `Word Recolor : show path`
 3. By editting that path, you can make extension to recolor any words to any colors you want
-4. After editting it, run command `Word Recolor : clear` -> `Word Recolor : Activate` to make it take effect
+4. After editting it, just switch between tabs and it will reset the effect.
 
 # Commands
 1. `Word Recolor : activate`

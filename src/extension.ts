@@ -124,17 +124,11 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable3 = vscode.commands.registerCommand('wordrecolor.clear', () => {
 		resetDecoration(decorationTypeArr);
 	});
-
-	let disposable4 = vscode.commands.registerCommand('wordrecolor.restart', () => {
-		deactivate();		
-		activate(context);
-	});
 	
 	// This will put the command specified in package.json into command palette (CTRL + SHIFT + P)
 	context.subscriptions.push(disposable1);
 	context.subscriptions.push(disposable2);
 	context.subscriptions.push(disposable3);
-	context.subscriptions.push(disposable4);
 }
 
 // this method is called when your extension is disabled

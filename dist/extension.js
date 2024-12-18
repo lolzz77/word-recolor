@@ -1,1 +1,299 @@
-(()=>{"use strict";var e={496:e=>{e.exports=require("vscode")},147:e=>{e.exports=require("fs")},17:e=>{e.exports=require("path")}},o={};function t(r){var n=o[r];if(void 0!==n)return n.exports;var i=o[r]={exports:{}};return e[r](i,i.exports,t),i.exports}var r={};(()=>{var e=r;Object.defineProperty(e,"__esModule",{value:!0}),e.create_JSON_file_if_not_exist=e.resetDecoration=e.removeAllJSONFromDirectory=e.deactivate=e.activate=void 0;const o=t(496),n=t(147),i=t(17);var s=[];function c(){d(s)}function a(e){return null==e&&(e="plaintext"),o.env.appRoot+"/word-recolor/"+e+".json"}function d(e){for(const o of e)o.decorationTypeArr.dispose(),o.ranges.length=0;e.length=0}function l(e,o){let t,r,i="",s="",c="",a=__dirname+"/../jsonFile/"+o+".json";t=e.split("/"),t.pop(),r=t.join("/"),n.existsSync(e)||(n.existsSync(a)&&(i=n.readFileSync(a,"utf-8"),s=JSON.parse(i),c=JSON.stringify(s,null,4)),n.existsSync(r)||n.mkdir(r,{recursive:!0},(e=>{e?console.error(e):console.log(r+" created")})),n.writeFileSync(e,c,"utf8"))}e.activate=function e(t){let r=o.commands.registerCommand("wordrecolor.activate",(()=>{let e;function r(){let e=function(){let e,t=o.window.activeTextEditor;return e=t?t.document.languageId:"No language detected",e}(),t=a(e);l(t,e);let r=function(e){let o=n.readFileSync(e,"utf8");return JSON.parse(o)}(t);var i=o.window.activeTextEditor;if(!i)return;var c=i.document,d=c.getText(),u=[];let p=Object.keys(r);for(let e of p){let t=r[e];for(let e of t){let t,r=new RegExp("\\b("+e+")\\b","gi");for(;t=r.exec(d);){const e=c.positionAt(t.index),r=c.positionAt(t.index+t[0].length),n=new o.Range(e,r);u.push(n)}}s.push({decorationTypeArr:o.window.createTextEditorDecorationType({color:e}),ranges:[...u]})}for(const e of s){let o=e.decorationTypeArr,t=e.ranges;i.setDecorations(o,t)}}function i(){e&&(clearTimeout(e),e=void 0),e=setTimeout(r,500)}o.window.activeTextEditor&&(o.window.activeTextEditor&&(d(s),i()),o.window.onDidChangeActiveTextEditor((e=>{e&&(d(s),i())}),null,t.subscriptions),o.workspace.onDidChangeTextDocument((e=>{o.window.activeTextEditor&&e.document===o.window.activeTextEditor.document&&(d(s),i())}),null,t.subscriptions))})),i=o.commands.registerCommand("wordrecolor.showPath",(()=>{let e=a(null);o.window.showInformationMessage(e)})),u=o.commands.registerCommand("wordrecolor.clear",(()=>{d(s)})),p=o.commands.registerCommand("wordrecolor.restart",(()=>{c(),e(t)}));t.subscriptions.push(r),t.subscriptions.push(i),t.subscriptions.push(u),t.subscriptions.push(p)},e.deactivate=c,e.removeAllJSONFromDirectory=function(){const e=a(null),o=i.dirname(e);n.existsSync(o)&&n.readdir(o,((e,t)=>{e?console.error(`Error reading directory: ${e.message}`):t.forEach((e=>{const t=i.join(o,e);n.unlink(t,(e=>{e&&console.error(`Error deleting file: ${t} - ${e.message}`)}))}))}))},e.resetDecoration=d,e.create_JSON_file_if_not_exist=l})(),module.exports=r})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ([
+/* 0 */,
+/* 1 */
+/***/ ((module) => {
+
+module.exports = require("vscode");
+
+/***/ }),
+/* 2 */
+/***/ ((module) => {
+
+module.exports = require("fs");
+
+/***/ }),
+/* 3 */
+/***/ ((module) => {
+
+module.exports = require("path");
+
+/***/ })
+/******/ 	]);
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.create_JSON_file_if_not_exist = exports.resetDecoration = exports.removeAllJSONFromDirectory = exports.deactivate = exports.activate = void 0;
+// The module 'vscode' contains the VS Code extensibility API
+// Import the module and reference it with the alias vscode in your code below
+const vscode = __webpack_require__(1);
+const fs = __webpack_require__(2);
+const path = __webpack_require__(3);
+var decorationTypeArr = [];
+function activate(context) {
+    let disposable1 = vscode.commands.registerCommand('wordrecolor.activate', () => {
+        let editor = vscode.window.activeTextEditor;
+        if (!editor)
+            return;
+        // just a note, you can set the italic font style and such
+        // const nullDecorationType = vscode.window.createTextEditorDecorationType({
+        //     color: '#ff00f2', // Pink
+        // 	fontStyle: 'italic',
+        // 	// This is how you do it
+        // 	// fontWeight: 'bold',
+        // 	// fontStyle: 'italic',
+        // 	// textDecoration: 'underline'
+        // });
+        // This is to delay the trigger update
+        // This is to increase performance
+        // Now, everytime you type in file, it will trigger the extension to colorize words
+        // However, we dont want it to colorize immediately, but after a short delay
+        let timeout = undefined;
+        // main function, will recolor the words
+        function updateDecorations() {
+            let language = getCurrentActiveEditorLanguage();
+            // for now, just make it to plaintext.json first
+            let JSONPath = getJSONPath(language);
+            create_JSON_file_if_not_exist(JSONPath, language);
+            let JSONData = getJSONData(JSONPath);
+            var editor = vscode.window.activeTextEditor;
+            if (!editor)
+                return;
+            var document = editor.document;
+            var text = document.getText();
+            var ranges = [];
+            let colors = Object.keys(JSONData);
+            // for each color, set decoration
+            for (let color of colors) {
+                let keywords = JSONData[color];
+                // for each keywords of the colors, set up ranges
+                for (let keyword of keywords) {
+                    let match;
+                    // match case-insensitive-ly
+                    let regex = new RegExp("\\b(" + keyword + ")\\b", "gi");
+                    while (match = regex.exec(text)) {
+                        const start = document.positionAt(match.index);
+                        const end = document.positionAt(match.index + match[0].length);
+                        const range = new vscode.Range(start, end);
+                        // put these words into array
+                        ranges.push(range);
+                    }
+                }
+                decorationTypeArr.push({
+                    decorationTypeArr: vscode.window.createTextEditorDecorationType({ color: color }),
+                    // this pushes a copy of the array
+                    // if dont do this, the array pushed into here, are of the same array
+                    // once the original got modified, this will be modified as well
+                    ranges: [...ranges]
+                });
+            }
+            for (const decorationInterface of decorationTypeArr) {
+                let decorationType = decorationInterface.decorationTypeArr;
+                let ranges = decorationInterface.ranges;
+                // change the color, according to the words in the array
+                editor.setDecorations(decorationType, ranges);
+            }
+        }
+        function triggerUpdateDecorations() {
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = undefined;
+            }
+            timeout = setTimeout(updateDecorations, 500);
+        }
+        // This one I think apply changes based on current active file you're editting
+        if (vscode.window.activeTextEditor) {
+            resetDecoration(decorationTypeArr);
+            triggerUpdateDecorations();
+        }
+        // This one will handle event handling
+        // This will trigger function to colotizes the word
+        vscode.window.onDidChangeActiveTextEditor(editor => {
+            if (!editor)
+                return;
+            resetDecoration(decorationTypeArr);
+            triggerUpdateDecorations();
+        }, null, context.subscriptions);
+        // This one will handle event handling
+        // This will trigger function to colotizes the word
+        vscode.workspace.onDidChangeTextDocument(event => {
+            if (vscode.window.activeTextEditor && event.document === vscode.window.activeTextEditor.document) {
+                resetDecoration(decorationTypeArr);
+                triggerUpdateDecorations();
+            }
+        }, null, context.subscriptions);
+    });
+    let disposable2 = vscode.commands.registerCommand('wordrecolor.showPath', () => {
+        let JSONPath = getJSONPath(null);
+        vscode.window.showInformationMessage(JSONPath);
+    });
+    let disposable3 = vscode.commands.registerCommand('wordrecolor.clear', () => {
+        resetDecoration(decorationTypeArr);
+    });
+    // This will put the command specified in package.json into command palette (CTRL + SHIFT + P)
+    context.subscriptions.push(disposable1);
+    context.subscriptions.push(disposable2);
+    context.subscriptions.push(disposable3);
+}
+exports.activate = activate;
+// this method is called when your extension is disabled
+function deactivate() {
+    resetDecoration(decorationTypeArr);
+    // Delete all JSON file
+    // Probably no need, as user mayu reenable the extension again and finds the JSON they did is gone lmao
+    // I guess it will be gone once you uninstall the extension
+    // removeAllJSONFromDirectory();
+}
+exports.deactivate = deactivate;
+function removeAllJSONFromDirectory() {
+    const JSONPath = getJSONPath(null);
+    const dirPath = path.dirname(JSONPath);
+    if (!fs.existsSync(dirPath)) {
+        return;
+    }
+    // Read all files in the directory
+    fs.readdir(dirPath, (err, files) => {
+        if (err) {
+            console.error(`Error reading directory: ${err.message}`);
+            return;
+        }
+        // Iterate over all files and delete them
+        files.forEach(file => {
+            const fileToDelete = path.join(dirPath, file);
+            fs.unlink(fileToDelete, (err) => {
+                if (err) {
+                    console.error(`Error deleting file: ${fileToDelete} - ${err.message}`);
+                }
+            });
+        });
+    });
+}
+exports.removeAllJSONFromDirectory = removeAllJSONFromDirectory;
+// Get the JSON File
+function getJSONData(JSONPath) {
+    let fileContents = fs.readFileSync(JSONPath, "utf8");
+    let JSONData = JSON.parse(fileContents);
+    return JSONData;
+}
+// To get the JSON file path that the extension will be looking
+// This JSON describe what keyword to recolor
+function getJSONPath(language) {
+    // if language passed in is null, then set it to 'plaintext.json'
+    if (language == null)
+        language = 'plaintext';
+    return vscode.env.appRoot + '/word-recolor/' + language + '.json';
+}
+// To get the current active editor language
+function getCurrentActiveEditorLanguage() {
+    let language;
+    let editor = vscode.window.activeTextEditor;
+    if (editor) {
+        language = editor.document.languageId;
+    }
+    else {
+        language = 'No language detected';
+    }
+    return language;
+}
+// Generated by Bing
+function getFunctionNameAndLineNumber() {
+    const error = new Error();
+    const stack = error.stack?.split('\n')[2];
+    const functionName = stack?.match(/at (\S+)/)?.[1] ?? '';
+    const lineNumber = parseInt(stack?.match(/:(\d+):/)?.[1] ?? '', 10);
+    return [functionName, lineNumber];
+}
+// for resetting the decoration applied to active editor
+function resetDecoration(decorationTypes) {
+    // Reset all decoration types to their default state
+    for (const decorationInterface of decorationTypes) {
+        decorationInterface.decorationTypeArr.dispose();
+        // it seems vscode.Range has no dispose() method
+        // just set the array to null them.
+        decorationInterface.ranges.length = 0;
+    }
+    // delete all the elements
+    decorationTypes.length = 0;
+}
+exports.resetDecoration = resetDecoration;
+// to create file, then write the JSON content into it
+function create_JSON_file_if_not_exist(filePath, language) {
+    let readBuffer = '';
+    let readBufferJSON = '';
+    let writeBuffer = '';
+    let segments;
+    let parentDir;
+    // the current repo json file
+    // eg: word-recolor/jsonFile/plaintext.json
+    // Note: Im referring this repo JSON file.
+    let repo_json_file = __dirname + "/../jsonFile/" + language + ".json";
+    // get the parent dir of the file path
+    segments = filePath.split('/'); // split the path by slashes
+    segments.pop(); // remove the last segment (file name)
+    parentDir = segments.join('/'); // join the remaining segments with slashes
+    // check if the JSON file that im going to write exists in the user folder
+    // eg: /root/.vscode-server/bin/138f619c86f1199955d53b4166bef66ef252935c/word-recolor/plaintext.json
+    // Note: This is not the repo JSON file.
+    if (fs.existsSync(filePath)) {
+        return;
+    }
+    // only read if the repo JSON file exists
+    // eg: word-recolor/jsonFile/plaintext.json
+    // Note: Im referring this repo JSON file.
+    if (fs.existsSync(repo_json_file)) {
+        readBuffer = fs.readFileSync(repo_json_file, 'utf-8');
+        readBufferJSON = JSON.parse(readBuffer);
+        writeBuffer = JSON.stringify(readBufferJSON, null, 4); // 4 spaces indentation
+    }
+    // create parent folder if not exists
+    if (!fs.existsSync(parentDir)) {
+        fs.mkdir(parentDir, { recursive: true }, (err) => {
+            if (err) {
+                console.error(err);
+            }
+            else {
+                console.log(parentDir + " created");
+            }
+        });
+    }
+    // create file & write
+    fs.writeFileSync(filePath, writeBuffer, 'utf8');
+}
+exports.create_JSON_file_if_not_exist = create_JSON_file_if_not_exist;
+
+})();
+
+module.exports = __webpack_exports__;
+/******/ })()
+;
+//# sourceMappingURL=extension.js.map
