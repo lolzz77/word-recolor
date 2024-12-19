@@ -21,8 +21,8 @@ Here I have recolored 'NULL' 'FALSE' 'TRUE' to different distinguishable colors
 
 # Commands
 1. `Word Recolor : activate`
-- To activate the extension to color the words
-2. `Word Recolor : clear`
-- To remove the colorized words
+- To activate, and actively colorizing the word.
+2. `Word Recolor : deactivate`
+- To stop colorizing the word.
 3. `Word Recolor : show path`
-- To show you the default.JSON file that the extension has generated
+- To show you the path to the JSON file that the extension has generated & used.
