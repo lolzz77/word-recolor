@@ -137,10 +137,15 @@ export function activate(context: vscode.ExtensionContext) {
 		deactivate();
 	});
 
+	let disposable4 = vscode.commands.registerCommand('wordrecolor.clearJSON', () => {
+		removeAllJSONFromDirectory();
+	});
+
 	// This will put the command specified in package.json into command palette (CTRL + SHIFT + P)
 	context.subscriptions.push(disposable1);
 	context.subscriptions.push(disposable2);
 	context.subscriptions.push(disposable3);
+	context.subscriptions.push(disposable4);
 }
 
 // this method is called when your extension is disabled

@@ -20,9 +20,14 @@ Here I have recolored 'NULL' 'FALSE' 'TRUE' to different distinguishable colors
 4. After editting it, just switch between tabs and it will reset the effect.
 
 # Commands
-1. `Word Recolor : activate`
+1. `Word Recolor : Activate`
 - To activate, and actively colorizing the word.
-2. `Word Recolor : deactivate`
+2. `Word Recolor : Deactivate`
 - To stop colorizing the word.
-3. `Word Recolor : show path`
+3. `Word Recolor : Show JSON Path`
 - To show you the path to the JSON file that the extension has generated & used.
+- It will use `vscode.window.showInformationMessage`,
+- Hence, if you cant see the message pop up, probably you have silented your VS Code notification.
+4. `Word Recolor : Clear JSON Files`
+- Delete all the generated JSON files.
+- It will regenerate the default JSON again when you switch between editors.
