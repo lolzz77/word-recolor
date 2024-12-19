@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 var decorationTypeArr:decorationInterface[] = [];
+var g_activate = false;
 
 interface decorationInterface {
 	decorationTypeArr:vscode.TextEditorDecorationType;
@@ -12,108 +13,118 @@ interface decorationInterface {
 }
 
 export function activate(context: vscode.ExtensionContext) {
-	let disposable1 = vscode.commands.registerCommand('wordrecolor.activate', () => {
-		let editor = vscode.window.activeTextEditor;
+	let editor = vscode.window.activeTextEditor;
+	if(!editor)
+		return;
+
+	// just a note, you can set the italic font style and such
+	// const nullDecorationType = vscode.window.createTextEditorDecorationType({
+	//     color: '#ff00f2', // Pink
+	// 	fontStyle: 'italic',
+	// 	// This is how you do it
+	// 	// fontWeight: 'bold',
+	// 	// fontStyle: 'italic',
+	// 	// textDecoration: 'underline'
+	// });
+	
+	// This is to delay the trigger update
+	// This is to increase performance
+	// Now, everytime you type in file, it will trigger the extension to colorize words
+	// However, we dont want it to colorize immediately, but after a short delay
+	let timeout: NodeJS.Timer | undefined = undefined;
+	
+	// main function, will recolor the words
+	function updateDecorations() {
+
+		if (!g_activate)
+			return;
+
+		let language = getCurrentActiveEditorLanguage();
+		// for now, just make it to plaintext.json first
+		let JSONPath = getJSONPath(language);
+		create_JSON_file_if_not_exist(JSONPath, language);
+		let JSONData = getJSONData(JSONPath);
+
+		var editor = vscode.window.activeTextEditor;
 		if(!editor)
 			return;
-	
-		// just a note, you can set the italic font style and such
-		// const nullDecorationType = vscode.window.createTextEditorDecorationType({
-		//     color: '#ff00f2', // Pink
-		// 	fontStyle: 'italic',
-		// 	// This is how you do it
-		// 	// fontWeight: 'bold',
-		// 	// fontStyle: 'italic',
-		// 	// textDecoration: 'underline'
-		// });
-		
-		// This is to delay the trigger update
-		// This is to increase performance
-		// Now, everytime you type in file, it will trigger the extension to colorize words
-		// However, we dont want it to colorize immediately, but after a short delay
-		let timeout: NodeJS.Timer | undefined = undefined;
-		
-		// main function, will recolor the words
-		function updateDecorations() {
-
-			let language = getCurrentActiveEditorLanguage();
-			// for now, just make it to plaintext.json first
-			let JSONPath = getJSONPath(language);
-			create_JSON_file_if_not_exist(JSONPath, language);
-			let JSONData = getJSONData(JSONPath);
-
-			var editor = vscode.window.activeTextEditor;
-			if(!editor)
-				return;
-			var document = editor.document;
-			var text = document.getText();
-			var ranges: vscode.Range[] = [];
-			let colors = Object.keys(JSONData);
-			// for each color, set decoration
-			for (let color of colors) {
-				let keywords = JSONData[color];
-				// for each keywords of the colors, set up ranges
-				for (let keyword of keywords) {
-					let match;
-					// match case-insensitive-ly
-					let regex = new RegExp("\\b(" + keyword + ")\\b", "gi");
-					while (match = regex.exec(text)) {
-						const start = document.positionAt(match.index);
-						const end = document.positionAt(match.index + match[0].length);
-						const range = new vscode.Range(start, end);
-						// put these words into array
-						ranges.push(range);
-					}
+		var document = editor.document;
+		var text = document.getText();
+		var ranges: vscode.Range[] = [];
+		let colors = Object.keys(JSONData);
+		// for each color, set decoration
+		for (let color of colors) {
+			let keywords = JSONData[color];
+			// for each keywords of the colors, set up ranges
+			for (let keyword of keywords) {
+				let match;
+				// match case-insensitive-ly
+				let regex = new RegExp("\\b(" + keyword + ")\\b", "gi");
+				while (match = regex.exec(text)) {
+					const start = document.positionAt(match.index);
+					const end = document.positionAt(match.index + match[0].length);
+					const range = new vscode.Range(start, end);
+					// put these words into array
+					ranges.push(range);
 				}
-				decorationTypeArr.push(
-					{
-						decorationTypeArr : vscode.window.createTextEditorDecorationType({color: color}),
-						// this pushes a copy of the array
-						// if dont do this, the array pushed into here, are of the same array
-						// once the original got modified, this will be modified as well
-						ranges: [...ranges]
-					});
 			}
-			for(const decorationInterface of decorationTypeArr)
-			{
-				let decorationType = decorationInterface.decorationTypeArr;
-				let ranges = decorationInterface.ranges;
-				// change the color, according to the words in the array
-				editor.setDecorations(decorationType, ranges);
-			}
+			decorationTypeArr.push(
+				{
+					decorationTypeArr : vscode.window.createTextEditorDecorationType({color: color}),
+					// this pushes a copy of the array
+					// if dont do this, the array pushed into here, are of the same array
+					// once the original got modified, this will be modified as well
+					ranges: [...ranges]
+				});
 		}
-	
-		function triggerUpdateDecorations() {
-			if (timeout) {
-				clearTimeout(timeout);
-				timeout = undefined;
-			}
-			timeout = setTimeout(updateDecorations, 500);
+		for(const decorationInterface of decorationTypeArr)
+		{
+			let decorationType = decorationInterface.decorationTypeArr;
+			let ranges = decorationInterface.ranges;
+			// change the color, according to the words in the array
+			editor.setDecorations(decorationType, ranges);
 		}
+	}
+
+	function triggerUpdateDecorations() {
+		if (timeout) {
+			clearTimeout(timeout);
+			timeout = undefined;
+		}
+		timeout = setTimeout(updateDecorations, 500);
+	}
+
+	// This one I think apply changes based on current active file you're editting
+	if (vscode.window.activeTextEditor) {
+		resetDecoration(decorationTypeArr);
+		triggerUpdateDecorations();
+	}
 	
-		// This one I think apply changes based on current active file you're editting
-		if (vscode.window.activeTextEditor) {
+	// This one will handle event handling
+	// This will trigger function to colotizes the word
+	vscode.window.onDidChangeActiveTextEditor(editor => {
+		if(!editor)
+			return;
+		resetDecoration(decorationTypeArr);
+		triggerUpdateDecorations();
+	}, null, context.subscriptions);
+	
+	// This one will handle event handling
+	// This will trigger function to colotizes the word
+	vscode.workspace.onDidChangeTextDocument(event => {
+		if (vscode.window.activeTextEditor && event.document === vscode.window.activeTextEditor.document) {
 			resetDecoration(decorationTypeArr);
 			triggerUpdateDecorations();
 		}
-		
-		// This one will handle event handling
-		// This will trigger function to colotizes the word
-		vscode.window.onDidChangeActiveTextEditor(editor => {
-			if(!editor)
-				return;
-			resetDecoration(decorationTypeArr);
-			triggerUpdateDecorations();
-		}, null, context.subscriptions);
-		
-		// This one will handle event handling
-		// This will trigger function to colotizes the word
-		vscode.workspace.onDidChangeTextDocument(event => {
-			if (vscode.window.activeTextEditor && event.document === vscode.window.activeTextEditor.document) {
-				resetDecoration(decorationTypeArr);
-				triggerUpdateDecorations();
-			}
-		}, null, context.subscriptions);
+	}, null, context.subscriptions);
+
+	let disposable1 = vscode.commands.registerCommand('wordrecolor.activate', () => {
+		// This command has the same name as "activate()" function
+		// But i tested that, simply by putting log,
+		// When you first run `activate`, it will run `activate()` function
+		// then when you run `activate` again, only this snipppet is ran,
+		// the actual `activate()` function is not ran.
+		g_activate = true;
 	});
 
 	let disposable2 = vscode.commands.registerCommand('wordrecolor.showPath', () => {
@@ -121,10 +132,11 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage(JSONPath);
 	});
 
-	let disposable3 = vscode.commands.registerCommand('wordrecolor.clear', () => {
-		resetDecoration(decorationTypeArr);
+	let disposable3 = vscode.commands.registerCommand('wordrecolor.deactivate', () => {
+		g_activate = false;
+		deactivate();
 	});
-	
+
 	// This will put the command specified in package.json into command palette (CTRL + SHIFT + P)
 	context.subscriptions.push(disposable1);
 	context.subscriptions.push(disposable2);

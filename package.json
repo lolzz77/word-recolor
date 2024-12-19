@@ -28,8 +28,8 @@
         "title": "Word Recolor: show path"
       },
       {
-        "command": "wordrecolor.clear",
-        "title": "Word Recolor: clear"
+        "command": "wordrecolor.deactivate",
+        "title": "Word Recolor: deactivate"
       }
     ]
   },
