@@ -1,10 +1,10 @@
 {
-    "#23ff0a":
-    [
-        "success"
+    "#23ff0a": [
+        "success",
+        "pass",
+        "passed"
     ],
-    "red":
-    [
+    "red": [
         "error",
         "fatal error",
         "fail",
