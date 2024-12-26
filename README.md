@@ -31,3 +31,13 @@ Here I have recolored 'NULL' 'FALSE' 'TRUE' to different distinguishable colors
 4. `Word Recolor : Clear JSON Files`
 - Delete all the generated JSON files.
 - It will regenerate the default JSON again when you switch between editors.
+
+# How to Write JSON
+1. Note: See `jsonFile/plaintext.json` for reference.
+2. In case you have overlapping words, like python.json
+- You have "NOT IN" and "IN"
+- Those that should be prioritized should put at top.
+- Eg: "NOT IN" is higher priority than "IN"
+- Hence, put "NOT IN" above of "IN"
+- If you didnt, the word "NOT IN", the "NOT" will be colored to red, and "IN" colored in green.
+- You will see the word has 2 different colors.
