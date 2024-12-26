@@ -3,14 +3,14 @@
     [
         "NONE"
     ],
-    "#23ff0a":
-    [
-        "TRUE",
-        " IN "
-    ],
     "red":
     [
         "FALSE",
         "NOT IN"
+    ],
+    "#23ff0a":
+    [
+        "TRUE",
+        " IN "
     ]
 }
