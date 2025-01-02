@@ -2,7 +2,8 @@
     "#23ff0a": [
         "success",
         "pass",
-        "passed"
+        "passed",
+        "done"
     ],
     "red": [
         "error",
