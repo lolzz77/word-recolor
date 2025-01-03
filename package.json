@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/lolzz77/go-to-symbol.git"
   },
-  "version": "2.1.2",
+  "version": "2.2.0",
   "engines": {
     "vscode": "^1.79.0"
   },
