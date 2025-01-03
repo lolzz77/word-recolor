@@ -145,9 +145,13 @@ export function activate(context: vscode.ExtensionContext) {
 		g_activate = true;
 	});
 
-	let disposable2 = vscode.commands.registerCommand('wordrecolor.showPath', () => {
-		let JSONPath = getJSONPath(null);
-		vscode.window.showInformationMessage(JSONPath);
+	let disposable2 = vscode.commands.registerCommand('wordrecolor.openJSON', async () => {
+		let language = getCurrentActiveEditorLanguage();
+		let JSONPath = getJSONPath(language);
+
+		// Open the file in the editor
+		const document = await vscode.workspace.openTextDocument(JSONPath);
+		await vscode.window.showTextDocument(document);
 	});
 
 	let disposable3 = vscode.commands.registerCommand('wordrecolor.deactivate', () => {

@@ -15,8 +15,8 @@ Here I have recolored 'NULL' 'FALSE' 'TRUE' to different distinguishable colors
 
 # How it works
 1. It will generate default.json file in a path
-2. The path can be shown thru the command `Word Recolor : show path`
-3. By editting that path, you can make extension to recolor any words to any colors you want
+2. The JSON file can be opened thru the command `Word Recolor : Open JSON File`
+3. By editting that file, you can make extension to recolor any words to any colors you want
 4. After editting it, just switch between tabs and it will reset the effect.
 
 # Commands
@@ -24,10 +24,8 @@ Here I have recolored 'NULL' 'FALSE' 'TRUE' to different distinguishable colors
 - To activate, and actively colorizing the word.
 2. `Word Recolor : Deactivate`
 - To stop colorizing the word.
-3. `Word Recolor : Show JSON Path`
-- To show you the path to the JSON file that the extension has generated & used.
-- It will use `vscode.window.showInformationMessage`,
-- Hence, if you cant see the message pop up, probably you have silented your VS Code notification.
+3. `Word Recolor : Open JSON Path`
+- To open you the path to the JSON file that the extension has generated & used.
 4. `Word Recolor : Clear JSON Files`
 - Delete all the generated JSON files.
 - It will regenerate the default JSON again when you switch between editors.

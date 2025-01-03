@@ -24,8 +24,8 @@
         "title": "Word Recolor: Activate"
       },
       {
-        "command": "wordrecolor.showPath",
-        "title": "Word Recolor: Show JSON Path"
+        "command": "wordrecolor.openJSON",
+        "title": "Word Recolor: Open JSON File"
       },
       {
         "command": "wordrecolor.deactivate",
