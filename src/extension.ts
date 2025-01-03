@@ -54,6 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let colors = Object.keys(JSONData);
 		// for each color, set decoration
 		for (let color of colors) {
+			ranges = [];
 			let keywords = JSONData[color];
 			// for each keywords of the colors, set up ranges
 			for (let keyword of keywords) {
@@ -68,14 +69,31 @@ export function activate(context: vscode.ExtensionContext) {
 					ranges.push(range);
 				}
 			}
-			decorationTypeArr.push(
-				{
-					decorationTypeArr : vscode.window.createTextEditorDecorationType({color: color}),
-					// this pushes a copy of the array
-					// if dont do this, the array pushed into here, are of the same array
-					// once the original got modified, this will be modified as well
-					ranges: [...ranges]
-				});
+			// Only color minimap for red color for now
+			if (color == 'red') {
+				decorationTypeArr.push(
+					{
+						decorationTypeArr : vscode.window.createTextEditorDecorationType({
+							// Text editor color
+							color: color,
+							// Minimap color
+							overviewRulerColor: color,
+							overviewRulerLane: vscode.OverviewRulerLane.Right,
+						}),
+						// this pushes a copy of the array
+						// if dont do this, the array pushed into here, are of the same array
+						// once the original got modified, this will be modified as well
+						ranges: [...ranges]
+					});
+			} else {
+				decorationTypeArr.push(
+					{
+						decorationTypeArr : vscode.window.createTextEditorDecorationType({
+							color: color,
+						}),
+						ranges: [...ranges]
+					});
+			}
 		}
 		for(const decorationInterface of decorationTypeArr)
 		{
