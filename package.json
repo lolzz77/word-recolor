@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/lolzz77/go-to-symbol.git"
   },
-  "version": "2.2.0",
+  "version": "3.0.0",
   "engines": {
     "vscode": "^1.79.0"
   },
@@ -35,7 +35,25 @@
         "command": "wordrecolor.clearJSON",
         "title": "Word Recolor: Clear JSON Files"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "wordRecolorSidebar",
+          "title": "Word Recolor",
+          "icon": "resources/w.svg"
+        }
+      ]
+    },
+    "views": {
+      "wordRecolorSidebar": [
+        {
+          "id": "wordRecolorView",
+          "name": "Tree View",
+          "icon": "resources/w.svg"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

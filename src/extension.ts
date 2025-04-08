@@ -7,6 +7,17 @@ import * as path from 'path';
 var decorationTypeArr:decorationInterface[] = [];
 var g_activate = false;
 
+
+
+// i made this global so i can dispose it in deactivate function
+var treeView:vscode.TreeView<SymbolTreeItem>;
+// i made this global so i can dispose it in deactivate function
+// Create a tree data provider for the view
+// this variable, i believe is to create the sidebar, but not the list inside of it
+var treeDataProvider:TreeDataProvider;
+
+
+
 interface decorationInterface {
 	decorationTypeArr:vscode.TextEditorDecorationType;
 	ranges:vscode.Range[];
@@ -16,6 +27,16 @@ export function activate(context: vscode.ExtensionContext) {
 	let editor = vscode.window.activeTextEditor;
 	if(!editor)
 		return;
+
+
+
+
+	// get all the symbols of the current active editor
+	let symbolTreeItem:SymbolTreeItem[] = [];
+	treeDataProvider= new TreeDataProvider(symbolTreeItem);
+
+
+
 
 	// just a note, you can set the italic font style and such
 	// const nullDecorationType = vscode.window.createTextEditorDecorationType({
@@ -52,8 +73,21 @@ export function activate(context: vscode.ExtensionContext) {
 		var text = document.getText();
 		var ranges: vscode.Range[] = [];
 		let colors = Object.keys(JSONData);
+		var treeArr:SymbolTreeItem[] = [];
+		// For pushing children into treeArr
+		// I will push parent first, then push children
+		// but in order to push chidlren, i need to know parent index
+		var treeIndex = -1;
+
 		// for each color, set decoration
 		for (let color of colors) {
+
+
+			treeIndex++;
+			// Push to treeview
+			treeArr.push(new SymbolTreeItem(color, vscode.TreeItemCollapsibleState.Expanded, null, null, []));
+
+
 			ranges = [];
 			let keywords = JSONData[color];
 			// for each keywords of the colors, set up ranges
@@ -65,8 +99,18 @@ export function activate(context: vscode.ExtensionContext) {
 					const start = document.positionAt(match.index);
 					const end = document.positionAt(match.index + match[0].length);
 					const range = new vscode.Range(start, end);
+					const line_number = document.lineAt(start).lineNumber + 1;
+
+
 					// put these words into array
 					ranges.push(range);
+					treeArr[treeIndex].children?.push(new SymbolTreeItem(
+						line_number + " : " + match[0],
+						vscode.TreeItemCollapsibleState.None,
+						line_number,
+						range));
+
+
 				}
 			}
 			// Only color minimap for red color for now
@@ -102,6 +146,11 @@ export function activate(context: vscode.ExtensionContext) {
 			// change the color, according to the words in the array
 			editor.setDecorations(decorationType, ranges);
 		}
+
+
+		treeDataProvider.refresh(treeArr);
+
+
 	}
 
 	function triggerUpdateDecorations() {
@@ -136,6 +185,50 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}, null, context.subscriptions);
 
+
+
+
+	// by putting this code, no need to trigger 'activate', it will auto load
+	vscode.window.registerTreeDataProvider(
+		'wordRecolorView', // this one has to follow "view" section in package.json
+		treeDataProvider
+	);
+
+	// by putting this code, i dk, put or not put the tree will be printed still
+	// the only thing is, it assign to variable, and you use that variable for listening to clicked event
+	treeView = vscode.window.createTreeView<SymbolTreeItem>(
+		'wordRecolorView', 
+		{
+			treeDataProvider : treeDataProvider,
+			showCollapseAll: true,
+			canSelectMany: true
+		}
+	);
+
+	// Listen for selection
+	treeView.onDidChangeSelection(event => {
+		let editor = vscode.window.activeTextEditor;
+		if(	editor == null )
+		{
+			return;
+		}
+
+		// get the selected object
+		const selectedItems = event.selection as SymbolTreeItem[];
+
+		// have to put as vscode.Range at behind else it will flag error
+		const range = selectedItems[0].range as vscode.Range;
+
+		// move the cursor to the location
+		const newSelection = new vscode.Selection(range.start, range.start);
+		editor.selection = newSelection;
+		// Reveal the range in the editor
+		editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
+	});
+
+
+
+
 	let disposable1 = vscode.commands.registerCommand('wordrecolor.activate', () => {
 		// This command has the same name as "activate()" function
 		// But i tested that, simply by putting log,
@@ -156,7 +249,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let disposable3 = vscode.commands.registerCommand('wordrecolor.deactivate', () => {
 		g_activate = false;
-		deactivate();
+		resetDecoration(decorationTypeArr);
+
+		treeDataProvider.dispose();
+		treeDataProvider.refresh([]);
 	});
 
 	let disposable4 = vscode.commands.registerCommand('wordrecolor.clearJSON', () => {
@@ -173,6 +269,10 @@ export function activate(context: vscode.ExtensionContext) {
 // this method is called when your extension is disabled
 export function deactivate() {
 	resetDecoration(decorationTypeArr);
+	treeDataProvider.dispose();
+	treeView.dispose();
+
+
 	// Delete all JSON file
 	// Probably no need, as user mayu reenable the extension again and finds the JSON they did is gone lmao
 	// I guess it will be gone once you uninstall the extension
@@ -312,3 +412,133 @@ export function create_JSON_file_if_not_exist(filePath:string, language:string|n
 	// create file & write
 	fs.writeFileSync(filePath, writeBuffer, 'utf8');
 }
+
+
+
+
+
+
+// this class holds the detail of list of symbols that regex matches
+// one symbol for 1 class
+
+/*
+TODO: U WANNA CHECK HOW TO DISPOSE THIS CLASS OBJECT PROPERLY
+*/
+class SymbolTreeItem extends vscode.TreeItem {
+	// to hold the subtree items.
+	// a tree can be expended further, revealing more trees
+	// these sub-trees are 'children'
+	children: SymbolTreeItem[]|undefined;
+
+	constructor(
+		// this is the string that appear on the tree list,
+		// to decide whether this is used to display the string,
+		// is by passing which variable into the `super` there
+		public readonly label: string,
+		// whether they collapse or not, hold `CTRL`, hover over TreeItemCollapsibleState to see more
+		public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+		public readonly lineNumber?: number|null,
+		public readonly range?: vscode.Range|null,
+		children?: SymbolTreeItem[],
+		// public readonly id?: string,
+		// public readonly command?: vscode.Command,
+		// public readonly iconPath: string | Uri | { light: string | Uri; dark: string | Uri } | ThemeIcon;
+	) {
+		// use intellisense to hover over `suepr` and see, 
+		// the 1st param is the string that will be appearing on the tree
+		super(label, collapsibleState);
+		this.children = children;
+	}
+
+	// TODO: attempting to dispose object properly
+	// my `children` will be undefined when running this code
+	/*
+			listOfSymbolsArr.push({
+			parent:key, 
+			children:[new SymbolTreeItem(
+				'null',
+				vscode.TreeItemCollapsibleState.None)
+			]
+		});
+	*/
+	// because, i didn't pass in any children
+	// thus, i should dispose `super` instead, cos this is what constructed in constructor
+	// however, TreeItem doesn't have `dispose` method
+	// so.. how to dispose this TreeItem?..
+	// it is told that, just dispose your class member resources
+
+	// Update: Dont use this dispose
+	// At first, I tot use this dispose for "deactivate" function to clear buffer
+	// But turns out, the more correct dispose is in Class TreeDataProvider
+	// Only use this dispose for "deactivate()" function where you deactivate your extension
+
+	dispose() {
+		// super.dispose();
+		if (this.children) {
+			for (const child of this.children) {
+				child.dispose();
+			}
+			this.children = [];
+		}
+	}
+}
+
+
+
+
+// Define a class for the tree data provider
+class TreeDataProvider implements vscode.TreeDataProvider<SymbolTreeItem> {
+
+	// the data to hold the whole symbol trees
+	// eg:
+	// function
+	// - main()
+	// - read_line()
+	// macro
+	// - UPRINTF
+	// - AB_UPGRADE
+	private data: SymbolTreeItem[]|undefined;
+
+	constructor(data:any) {
+		this.data = data;
+	}
+	
+	// A private event emitter that fires the onDidChangeTreeData event
+	private _onDidChangeTreeData: vscode.EventEmitter<SymbolTreeItem | undefined | null | void> = new vscode.EventEmitter<SymbolTreeItem | undefined | null | void>();
+	readonly onDidChangeTreeData: vscode.Event<SymbolTreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+
+	// required, read the document
+	// the `element` will only be triggered when you expand the collapsed tree
+	getChildren(element?: SymbolTreeItem): vscode.ProviderResult<SymbolTreeItem[]> {
+		// element will be undefined for tree that doesn't collapse, that is, vscode.TreeItemCollapsibleState.None
+		if(element == undefined)
+		{
+			// which means, no children, thus, just return the object's data
+			return this.data;
+		}
+		// else, return the children
+		return element.children;
+	}
+
+	// required, read the document
+	getTreeItem(element: SymbolTreeItem): vscode.TreeItem {
+		// Return the element as a tree item
+		return element;
+	}
+
+	// A refresh method that updates the tree view data and fires the event
+	refresh(data?: SymbolTreeItem[]): void {
+		// Update the data source for the tree view
+		this.data = data;
+		// Fire the event to notify VS Code that the tree view has changed
+		this._onDidChangeTreeData.fire();
+	}
+
+	dispose(): void {
+		this.data = []
+	}
+
+}
+
+
+
