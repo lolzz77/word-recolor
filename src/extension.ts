@@ -5,6 +5,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 var decorationTypeArr:decorationInterface[] = [];
+
+// To save pre-scanned file, load them immedaitely, save time
+var matchArrSize = 20; // number of files to save
+var matchArr:any[] = [];
+
+// This is for when you run command pallete "enable" & "disable"
 var g_activate = false;
 
 
@@ -25,8 +31,10 @@ interface decorationInterface {
 
 export function activate(context: vscode.ExtensionContext) {
 	let editor = vscode.window.activeTextEditor;
-	if(!editor)
+	if(!editor) {
+		treeDataProvider.dispose();
 		return;
+	}
 
 
 
@@ -57,8 +65,9 @@ export function activate(context: vscode.ExtensionContext) {
 	// main function, will recolor the words
 	function updateDecorations() {
 
-		if (!g_activate)
+		if (!g_activate) {
 			return;
+		}
 
 		let language = getCurrentActiveEditorLanguage();
 		// for now, just make it to plaintext.json first
@@ -67,13 +76,29 @@ export function activate(context: vscode.ExtensionContext) {
 		let JSONData = getJSONData(JSONPath);
 
 		var editor = vscode.window.activeTextEditor;
-		if(!editor)
+		if(!editor) {
+			treeDataProvider.dispose();
 			return;
+		}
+
+
+		// check if current editor exists in array
+		// let existsIndex = matchArr.findIndex(element => element.parent === filename);
+
+
+
 		var document = editor.document;
 		var text = document.getText();
 		var ranges: vscode.Range[] = [];
 		let colors = Object.keys(JSONData);
 		var treeArr:SymbolTreeItem[] = [];
+
+
+		// push filename into first in the list
+		const filename = editor.document.fileName;
+		treeArr.push(new SymbolTreeItem(filename, vscode.TreeItemCollapsibleState.None, null, null, []));
+
+
 		// For pushing children into treeArr
 		// I will push parent first, then push children
 		// but in order to push chidlren, i need to know parent index
@@ -147,7 +172,11 @@ export function activate(context: vscode.ExtensionContext) {
 			editor.setDecorations(decorationType, ranges);
 		}
 
-
+		// if (matchArr.length > matchArrSize) {
+		// 	// remove the 1st element
+		// 	matchArr.shift();
+		// }
+		// matchArr.push(treeArr);
 		treeDataProvider.refresh(treeArr);
 
 
@@ -478,7 +507,7 @@ class SymbolTreeItem extends vscode.TreeItem {
 			for (const child of this.children) {
 				child.dispose();
 			}
-			this.children = [];
+			this.children = null as any;
 		}
 	}
 }
@@ -528,6 +557,8 @@ class TreeDataProvider implements vscode.TreeDataProvider<SymbolTreeItem> {
 
 	// A refresh method that updates the tree view data and fires the event
 	refresh(data?: SymbolTreeItem[]): void {
+		// free the previous memory
+		this.dispose();
 		// Update the data source for the tree view
 		this.data = data;
 		// Fire the event to notify VS Code that the tree view has changed
@@ -535,7 +566,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<SymbolTreeItem> {
 	}
 
 	dispose(): void {
-		this.data = []
+		this.data = null as any
 	}
 
 }
