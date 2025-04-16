@@ -7,8 +7,8 @@ import * as path from 'path';
 var decorationTypeArr:decorationInterface[] = [];
 
 // To save pre-scanned file, load them immedaitely, save time
-var matchArrSize = 20; // number of files to save
-var matchArr:any[] = [];
+const MATCH_ARR_SIZE = 20; // number of files to save
+var matchArr:matchArrInterface[] = [];
 
 // This is for when you run command pallete "enable" & "disable"
 var g_activate = false;
@@ -80,11 +80,15 @@ export function activate(context: vscode.ExtensionContext) {
 			treeDataProvider.dispose();
 			return;
 		}
+		const filename = editor.document.fileName;
 
 
 		// check if current editor exists in array
-		// let existsIndex = matchArr.findIndex(element => element.parent === filename);
-
+		let existsIndex = matchArr.findIndex(element => element.filename === filename);
+		if (existsIndex != -1) {
+			treeDataProvider.refresh(matchArr[existsIndex].children);
+			return;
+		}
 
 
 		var document = editor.document;
@@ -95,7 +99,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 		// push filename into first in the list
-		const filename = editor.document.fileName;
 		treeArr.push(new SymbolTreeItem(filename, vscode.TreeItemCollapsibleState.None, null, null, []));
 
 
@@ -172,11 +175,15 @@ export function activate(context: vscode.ExtensionContext) {
 			editor.setDecorations(decorationType, ranges);
 		}
 
-		// if (matchArr.length > matchArrSize) {
-		// 	// remove the 1st element
-		// 	matchArr.shift();
-		// }
-		// matchArr.push(treeArr);
+		while(matchArr.length > MATCH_ARR_SIZE)
+		{
+			// dispose 1st element in a loop
+			for (const child of matchArr[0].children)
+				child.dispose();
+			// this will remove the 1st element of array
+			matchArr.shift();
+		}
+		matchArr.push({filename:filename, children:treeArr});
 		treeDataProvider.refresh(treeArr);
 
 
@@ -300,7 +307,7 @@ export function deactivate() {
 	resetDecoration(decorationTypeArr);
 	treeDataProvider.dispose();
 	treeView.dispose();
-
+	matchArr = null as any;
 
 	// Delete all JSON file
 	// Probably no need, as user mayu reenable the extension again and finds the JSON they did is gone lmao
@@ -513,6 +520,12 @@ class SymbolTreeItem extends vscode.TreeItem {
 }
 
 
+interface matchArrInterface {
+	filename: string;
+	// the list of symbols for the file
+	// their chidlren. Eg: 'main()', 'read_line()'
+	children: SymbolTreeItem[];
+}
 
 
 // Define a class for the tree data provider
