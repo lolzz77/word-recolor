@@ -81,7 +81,8 @@ export function activate(context: vscode.ExtensionContext) {
 			treeDataProvider.dispose();
 			return;
 		}
-		const filename = editor.document.fileName;
+		const filepath = editor.document.fileName;
+		const filename = path.basename(filepath);
 		const numberOfChar = editor.document.getText().length;
 
 		// check if current editor exists in array
