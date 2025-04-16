@@ -92,9 +92,15 @@ export function activate(context: vscode.ExtensionContext) {
 			// check if file has new changes,
 			// if yes, continue the rest of the code to update the array with new data
 			// if no, exit
-			if (matchArr[existsIndex].numberOfChar === numberOfChar) {
-				return;
-			}
+			// Update: Ignore this first
+			// The problem is, the decoration wont update
+			// I tried to fix it, but I dont find a way to 'clear decoration'
+			// Hence, the solution become mroe and more complex
+			// For now, is okay, let it continue to run the rest of code
+
+			// if (matchArr[existsIndex].numberOfChar === numberOfChar) {
+			// 	return;
+			// }
 		}
 
 
@@ -109,18 +115,13 @@ export function activate(context: vscode.ExtensionContext) {
 		treeArr.push(new SymbolTreeItem(filename, vscode.TreeItemCollapsibleState.None, null, null, []));
 
 
-		// For pushing children into treeArr
-		// I will push parent first, then push children
-		// but in order to push chidlren, i need to know parent index
-		var treeIndex = -1;
-
 		// for each color, set decoration
 		for (let color of colors) {
 
 
-			treeIndex++;
 			// Push to treeview
 			treeArr.push(new SymbolTreeItem(color, vscode.TreeItemCollapsibleState.Expanded, null, null, []));
+			let existsIndex_Color = treeArr.findIndex(element => element.label === color);
 
 
 			ranges = [];
@@ -139,7 +140,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 					// put these words into array
 					ranges.push(range);
-					treeArr[treeIndex].children?.push(new SymbolTreeItem(
+					treeArr[existsIndex_Color].children?.push(new SymbolTreeItem(
 						line_number + " : " + match[0],
 						vscode.TreeItemCollapsibleState.None,
 						line_number,
