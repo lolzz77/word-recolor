@@ -85,9 +85,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// check if current editor exists in array
 		let existsIndex = matchArr.findIndex(element => element.filename === filename);
-		if (existsIndex != -1) {
+		if (existsIndex >= 0) {
 			treeDataProvider.refresh(matchArr[existsIndex].children);
-			return;
+			// DO NOT RETURN HERE
+			// the existed index, have chances that it has some new changes and
+			// need to re-scan the file and refresh the treelist
+			// my approach is, show first, the rescan & refresh can come later
 		}
 
 
@@ -167,6 +170,19 @@ export function activate(context: vscode.ExtensionContext) {
 					});
 			}
 		}
+
+		// check if the scanned file, is same as existed one
+		// Update: Ignore this first
+		// Need to write a lot of code to check each child manually
+		// im thinking, just let it update the array first
+
+		// if (existsIndex >= 0) {
+		// 	if (treeArr === matchArr[existsIndex].children) {
+		// 		return;
+		// 	}
+		// }
+
+		// Update decoration
 		for(const decorationInterface of decorationTypeArr)
 		{
 			let decorationType = decorationInterface.decorationTypeArr;
@@ -175,6 +191,7 @@ export function activate(context: vscode.ExtensionContext) {
 			editor.setDecorations(decorationType, ranges);
 		}
 
+		// Check array size
 		while(matchArr.length > MATCH_ARR_SIZE)
 		{
 			// dispose 1st element in a loop
@@ -183,9 +200,26 @@ export function activate(context: vscode.ExtensionContext) {
 			// this will remove the 1st element of array
 			matchArr.shift();
 		}
-		matchArr.push({filename:filename, children:treeArr});
-		treeDataProvider.refresh(treeArr);
 
+		// Update array & treelist
+		if(existsIndex >= 0) {
+
+			// delete the previous data
+			for(let child of matchArr[existsIndex].children)
+				child.dispose();
+			// discard / de-reference all the array elements
+			// to allow JS to garbage collect it
+			matchArr[existsIndex].children = null as any;
+			// now push the new symbols to it
+			matchArr[existsIndex].children = treeArr;
+			// refresh the tree
+			treeDataProvider.refresh(matchArr[existsIndex].children);
+
+		} else {
+
+			matchArr.push({filename:filename, children:treeArr});
+			treeDataProvider.refresh(treeArr);
+		}
 
 	}
 
