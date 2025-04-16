@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import internal = require('stream');
 
 var decorationTypeArr:decorationInterface[] = [];
 
@@ -81,16 +82,19 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 		const filename = editor.document.fileName;
-
+		const numberOfChar = editor.document.getText().length;
 
 		// check if current editor exists in array
 		let existsIndex = matchArr.findIndex(element => element.filename === filename);
 		if (existsIndex >= 0) {
 			treeDataProvider.refresh(matchArr[existsIndex].children);
-			// DO NOT RETURN HERE
-			// the existed index, have chances that it has some new changes and
-			// need to re-scan the file and refresh the treelist
-			// my approach is, show first, the rescan & refresh can come later
+
+			// check if file has new changes,
+			// if yes, continue the rest of the code to update the array with new data
+			// if no, exit
+			if (matchArr[existsIndex].numberOfChar === numberOfChar) {
+				return;
+			}
 		}
 
 
@@ -171,17 +175,6 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 
-		// check if the scanned file, is same as existed one
-		// Update: Ignore this first
-		// Need to write a lot of code to check each child manually
-		// im thinking, just let it update the array first
-
-		// if (existsIndex >= 0) {
-		// 	if (treeArr === matchArr[existsIndex].children) {
-		// 		return;
-		// 	}
-		// }
-
 		// Update decoration
 		for(const decorationInterface of decorationTypeArr)
 		{
@@ -211,13 +204,14 @@ export function activate(context: vscode.ExtensionContext) {
 			// to allow JS to garbage collect it
 			matchArr[existsIndex].children = null as any;
 			// now push the new symbols to it
+			matchArr[existsIndex].numberOfChar = numberOfChar;
 			matchArr[existsIndex].children = treeArr;
 			// refresh the tree
 			treeDataProvider.refresh(matchArr[existsIndex].children);
 
 		} else {
 
-			matchArr.push({filename:filename, children:treeArr});
+			matchArr.push({filename:filename, numberOfChar:numberOfChar, children:treeArr});
 			treeDataProvider.refresh(treeArr);
 		}
 
@@ -556,6 +550,7 @@ class SymbolTreeItem extends vscode.TreeItem {
 
 interface matchArrInterface {
 	filename: string;
+	numberOfChar: number; // number of char for the document, use to check whether file has new changes
 	// the list of symbols for the file
 	// their chidlren. Eg: 'main()', 'read_line()'
 	children: SymbolTreeItem[];
