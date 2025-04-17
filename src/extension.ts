@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import internal = require('stream');
+import { arrayBuffer } from 'stream/consumers';
 
 var decorationTypeArr:decorationInterface[] = [];
 
@@ -13,6 +14,9 @@ var matchArr:matchArrInterface[] = [];
 
 // This is for when you run command pallete "enable" & "disable"
 var g_activate = false;
+
+// To refresh / not to refresh tree
+var g_refresh_tree = true;
 
 
 
@@ -26,6 +30,7 @@ var treeDataProvider:TreeDataProvider;
 
 
 interface decorationInterface {
+	filepath: string;
 	decorationTypeArr:vscode.TextEditorDecorationType;
 	ranges:vscode.Range[];
 }
@@ -36,7 +41,6 @@ export function activate(context: vscode.ExtensionContext) {
 		treeDataProvider.dispose();
 		return;
 	}
-
 
 
 
@@ -112,7 +116,12 @@ export function activate(context: vscode.ExtensionContext) {
 		var treeArr:SymbolTreeItem[] = [];
 
 
-		// push filename into first in the list
+		// push filepath & filename into first in the list
+		// filepath is for when clicking the treeview
+		// I dont want it to take action if i pinned the tree, and i switch to 2nd document, 
+		// and i click treeview and it still jump me to the matched index.
+		// Whereas the filename, is for me to know which file the treeview is displaying
+		treeArr.push(new SymbolTreeItem(filepath, vscode.TreeItemCollapsibleState.None, null, null, []));
 		treeArr.push(new SymbolTreeItem(filename, vscode.TreeItemCollapsibleState.None, null, null, []));
 
 
@@ -154,6 +163,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (color == 'red') {
 				decorationTypeArr.push(
 					{
+						filepath: filepath,
 						decorationTypeArr : vscode.window.createTextEditorDecorationType({
 							// Text editor color
 							color: color,
@@ -169,6 +179,7 @@ export function activate(context: vscode.ExtensionContext) {
 			} else {
 				decorationTypeArr.push(
 					{
+						filepath: filepath,
 						decorationTypeArr : vscode.window.createTextEditorDecorationType({
 							color: color,
 						}),
@@ -229,6 +240,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// This one I think apply changes based on current active file you're editting
 	if (vscode.window.activeTextEditor) {
+
+		if (!g_refresh_tree) {
+			applyDecoration(decorationTypeArr, editor);
+			return;
+		}
+
 		resetDecoration(decorationTypeArr);
 		triggerUpdateDecorations();
 	}
@@ -238,6 +255,12 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeActiveTextEditor(editor => {
 		if(!editor)
 			return;
+
+		if (!g_refresh_tree) {
+			applyDecoration(decorationTypeArr, editor);
+			return;
+		}
+
 		resetDecoration(decorationTypeArr);
 		triggerUpdateDecorations();
 	}, null, context.subscriptions);
@@ -246,6 +269,12 @@ export function activate(context: vscode.ExtensionContext) {
 	// This will trigger function to colotizes the word
 	vscode.workspace.onDidChangeTextDocument(event => {
 		if (vscode.window.activeTextEditor && event.document === vscode.window.activeTextEditor.document) {
+
+			if (!g_refresh_tree) {
+				applyDecoration(decorationTypeArr, editor);
+				return;
+			}
+
 			resetDecoration(decorationTypeArr);
 			triggerUpdateDecorations();
 		}
@@ -271,12 +300,25 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	);
 
-	// Listen for selection
+	// Treeview Treelist Listen for selection
 	treeView.onDidChangeSelection(event => {
 		let editor = vscode.window.activeTextEditor;
-		if(	editor == null )
-		{
+		if (editor == null)
 			return;
+
+		let symbolTreeItem:SymbolTreeItem[]|undefined = treeDataProvider.getData()
+
+		// data possibly undefined, hence, need check else error
+		if (!symbolTreeItem)
+			return
+
+		// i dk why, without loop, i cant access like symbolTreeItem[0].label
+		// all i want is, check the 1st in array, see if the path is same as current active document
+		// if same, then proceed to listen for selection, else, quit
+		for (let arr of symbolTreeItem) {
+			if (arr.label !== editor.document.fileName)
+				return;
+			break;
 		}
 
 		// get the selected object
@@ -325,11 +367,30 @@ export function activate(context: vscode.ExtensionContext) {
 		removeAllJSONFromDirectory();
 	});
 
+	let disposable5 = vscode.commands.registerCommand('wordrecolor.pin', () => {
+		g_refresh_tree = false;
+		vscode.commands.executeCommand('setContext', 'wordrecolor.isPinned', true);
+	});
+
+	let disposable6 = vscode.commands.registerCommand('wordrecolor.unpin', () => {
+		g_refresh_tree = true;
+		vscode.commands.executeCommand('setContext', 'wordrecolor.isPinned', false);
+	});
+
 	// This will put the command specified in package.json into command palette (CTRL + SHIFT + P)
 	context.subscriptions.push(disposable1);
 	context.subscriptions.push(disposable2);
 	context.subscriptions.push(disposable3);
 	context.subscriptions.push(disposable4);
+	context.subscriptions.push(disposable5);
+	context.subscriptions.push(disposable6);
+	// Set the variable used by package.json
+	// This is to control the view of displaying pin and unpin icon
+	// CAUTIONS: they are very case sensitive, i previously typed "wordRecolor"
+	// Notice the "R" is capital.
+	// And it treated it as different variable and you wondering why the icon didnt change
+	vscode.commands.executeCommand('setContext', 'wordrecolor.isPinned', false);
+
 }
 
 // this method is called when your extension is disabled
@@ -421,10 +482,30 @@ export function resetDecoration(decorationTypes:decorationInterface[])
 		decorationInterface.decorationTypeArr.dispose();
 		// it seems vscode.Range has no dispose() method
 		// just set the array to null them.
-		decorationInterface.ranges.length = 0;
+
+		// I think, this will cause uncaught error or something
+		// decorationInterface.ranges.length = 0;
 	}
 	// delete all the elements
 	decorationTypes.length = 0;
+}
+
+// for redecorating to the active editor
+export function applyDecoration(decorationTypes:decorationInterface[], editor:any)
+{
+	for(const decorationInterface of decorationTypeArr)
+	{
+		// after adding 'pin' feature
+		// decoration will apply to all active document
+		// if pinned, i want decoration to re-apply to the pinned decoration only
+		if (decorationInterface.filepath !== editor.document.fileName)
+			return;
+
+		let decorationType = decorationInterface.decorationTypeArr;
+		let ranges = decorationInterface.ranges;
+		// change the color, according to the words in the array
+		editor.setDecorations(decorationType, ranges);
+	}
 }
 
 
@@ -572,7 +653,7 @@ class TreeDataProvider implements vscode.TreeDataProvider<SymbolTreeItem> {
 	// - AB_UPGRADE
 	private data: SymbolTreeItem[]|undefined;
 
-	constructor(data:any) {
+	constructor(data:SymbolTreeItem[]) {
 		this.data = data;
 	}
 	
@@ -597,6 +678,10 @@ class TreeDataProvider implements vscode.TreeDataProvider<SymbolTreeItem> {
 	getTreeItem(element: SymbolTreeItem): vscode.TreeItem {
 		// Return the element as a tree item
 		return element;
+	}
+
+	getData(): SymbolTreeItem[]|undefined {
+		return this.data;
 	}
 
 	// A refresh method that updates the tree view data and fires the event

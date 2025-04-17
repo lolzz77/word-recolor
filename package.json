@@ -34,6 +34,22 @@
       {
         "command": "wordrecolor.clearJSON",
         "title": "Word Recolor: Clear JSON Files"
+      },
+      {
+        "command": "wordrecolor.pin",
+        "title": "Pin",
+        "icon": {
+          "light": "resources/pin_off.svg",
+          "dark": "resources/pin_off.svg"
+        }
+      },
+      {
+        "command": "wordrecolor.unpin",
+        "title": "Unpin",
+        "icon": {
+          "light": "resources/pin_on.svg",
+          "dark": "resources/pin_on.svg"
+        }
       }
     ],
     "viewsContainers": {
@@ -51,6 +67,20 @@
           "id": "wordRecolorView",
           "name": "Tree View",
           "icon": "resources/w.svg"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "wordrecolor.pin",
+          "when": "view == wordRecolorView && !wordrecolor.isPinned",
+          "group": "navigation"
+        },
+        {
+          "command": "wordrecolor.unpin",
+          "when": "view == wordRecolorView && wordrecolor.isPinned",
+          "group": "navigation"
         }
       ]
     }
