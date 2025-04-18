@@ -130,7 +130,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 			// Push to treeview
-			treeArr.push(new SymbolTreeItem(color, vscode.TreeItemCollapsibleState.Expanded, null, null, []));
+			// i only want to expand the RED those
+			if (color == 'red')
+				treeArr.push(new SymbolTreeItem(color, vscode.TreeItemCollapsibleState.Expanded, null, null, []));
+			else
+				treeArr.push(new SymbolTreeItem(color, vscode.TreeItemCollapsibleState.Collapsed, null, null, []));
+
 			let existsIndex_Color = treeArr.findIndex(element => element.label === color);
 
 
