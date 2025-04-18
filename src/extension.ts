@@ -152,10 +152,23 @@ export function activate(context: vscode.ExtensionContext) {
 					const range = new vscode.Range(start, end);
 					const line_number = document.lineAt(start).lineNumber + 1;
 
+					// push to `ranges`, this is for decoration array
+					ranges.push(range);
 
 					// put these words into array
-					ranges.push(range);
-					treeArr[existsIndex_Color].children?.push(new SymbolTreeItem(
+					// but tho, need to sort it
+					let indexToInsert = 0;
+					let children = treeArr[existsIndex_Color]?.children;
+					if (children) {
+						for (let child of children) {
+							if(!child.lineNumber)
+								continue;
+							if (line_number < child.lineNumber)
+								break;
+							indexToInsert++;
+						}
+					}
+					treeArr[existsIndex_Color].children?.splice(indexToInsert, 0, new SymbolTreeItem(
 						line_number + " : " + match[0],
 						vscode.TreeItemCollapsibleState.None,
 						line_number,
