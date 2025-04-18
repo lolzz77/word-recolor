@@ -90,7 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const numberOfChar = editor.document.getText().length;
 
 		// check if current editor exists in array
-		let existsIndex = matchArr.findIndex(element => element.filename === filename);
+		let existsIndex = matchArr.findIndex(element => element.filepath === filepath);
 		if (existsIndex >= 0) {
 			treeDataProvider.refresh(matchArr[existsIndex].children);
 
@@ -216,15 +216,18 @@ export function activate(context: vscode.ExtensionContext) {
 			// discard / de-reference all the array elements
 			// to allow JS to garbage collect it
 			matchArr[existsIndex].children = null as any;
-			// now push the new symbols to it
+
 			matchArr[existsIndex].numberOfChar = numberOfChar;
+
+			// now push the new symbols to it
 			matchArr[existsIndex].children = treeArr;
+
 			// refresh the tree
 			treeDataProvider.refresh(matchArr[existsIndex].children);
 
 		} else {
 
-			matchArr.push({filename:filename, numberOfChar:numberOfChar, children:treeArr});
+			matchArr.push({filepath:filepath, numberOfChar:numberOfChar, children:treeArr});
 			treeDataProvider.refresh(treeArr);
 		}
 
@@ -632,7 +635,9 @@ class SymbolTreeItem extends vscode.TreeItem {
 
 
 interface matchArrInterface {
-	filename: string;
+	// this is so that i know which file the 'children' is referring to.
+	// tho, probably i havent utilize it perfectly yet.
+	filepath: string;
 	numberOfChar: number; // number of char for the document, use to check whether file has new changes
 	// the list of symbols for the file
 	// their chidlren. Eg: 'main()', 'read_line()'
