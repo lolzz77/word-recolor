@@ -158,7 +158,7 @@ export function activate(context: vscode.ExtensionContext) {
 					// put these words into array
 					// but tho, need to sort it
 					let indexToInsert = 0;
-					let children = treeArr[indexToInsert]?.children;
+					let children = treeArr[existsIndex_Color]?.children;
 					if (children) {
 						for (let child of children) {
 							if(!child.lineNumber)
