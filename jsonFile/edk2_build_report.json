@@ -10,5 +10,8 @@
         "fatal error",
         "fail",
         "failed"
+    ],
+    "yellow": [
+        "warning"
     ]
 }
