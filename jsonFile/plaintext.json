@@ -9,7 +9,9 @@
         "error",
         "fatal error",
         "fail",
-        "failed"
+        "failed",
+        "undefined",
+        "undefined reference"
     ],
     "yellow" : [
         "warning"
