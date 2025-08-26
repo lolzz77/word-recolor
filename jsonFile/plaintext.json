@@ -14,7 +14,8 @@
         "undefined reference",
         "no such file or directory",
         "undeclared",
-        "undeclared identifier"
+        "undeclared identifier",
+        "compilation terminated"
     ],
     "yellow" : [
         "warning"
