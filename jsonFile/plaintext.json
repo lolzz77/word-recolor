@@ -11,7 +11,8 @@
         "fail",
         "failed",
         "undefined",
-        "undefined reference"
+        "undefined reference",
+        "no such file or directory"
     ],
     "yellow" : [
         "warning"
