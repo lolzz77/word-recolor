@@ -13,7 +13,8 @@
         "undefined",
         "undefined reference",
         "no such file or directory",
-        "undeclared"
+        "undeclared",
+        "undeclared identifier"
     ],
     "yellow": [
         "warning"
