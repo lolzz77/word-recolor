@@ -15,7 +15,8 @@
         "no such file or directory",
         "undeclared",
         "undeclared identifier",
-        "compilation terminated"
+        "compilation terminated",
+        "libfakeroot: read: Connection reset by peer"
     ],
     "yellow": [
         "warning"
